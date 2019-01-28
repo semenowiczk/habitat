@@ -9,23 +9,19 @@ def hudsonRealm = new HudsonPrivateSecurityRealm(false)
 def users = hudsonRealm.getAllUsers()
 users_s = users.collect { it.toString() }
 
-
-File file1 = new File("/hab/jenkins_admin_password");
-def String pwObj = file1.readLines()[0];
-
 // Create the admin user account if it doesn't already exist.
 if ("{{cfg.jenkins.jenkins_admin_username}}" in users_s) {
     println "Admin user already exists - updating password"
 
     def user = hudson.model.User.get('{{cfg.jenkins.jenkins_admin_username}}');
-    def password = hudson.security.HudsonPrivateSecurityRealm.Details.fromPlainPassword("${pwObj}")
+    def password = hudson.security.HudsonPrivateSecurityRealm.Details.fromPlainPassword('{{cfg.jenkins.jenkins_admin_password}}')
     user.addProperty(password)
     user.save()
 }
 else {
     println "--> creating local admin user"
 
-    hudsonRealm.createAccount('{{cfg.jenkins.jenkins_admin_username}}', "${pwObj}")
+    hudsonRealm.createAccount('{{cfg.jenkins.jenkins_admin_username}}', '{{cfg.jenkins.jenkins_admin_password}}')
     instance.setSecurityRealm(hudsonRealm)
 
     def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
